@@ -111,10 +111,9 @@ int main(int argc, char** argv) {
 	vector<int> nodeCount;
 	vector<double> timeCount;
 	
+	srand(time(0));
 	for (int trial = 0; trial < numTrials; ++trial) {
 		nodesExpanded = 0;
-		sleep(1);
-		srand(time(0));
 		clock_t start;
 		start = clock();
 		int grid;
@@ -197,5 +196,6 @@ int main(int argc, char** argv) {
 	sdtime = sqrt(sdtime/numTrials);
 	sd = sqrt(sd/numTrials);
 	cout << "********************************************" << endl;
-	cout << "Finished! Average runtime " << meanTime << " ms  Average Nodes Expanded " << meanNode << " Standard Dev: " << sd<< endl;
+	cout << "Finished! Average runtime " << meanTime << " ms Std Dev: " << sdtime << endl;
+	cout << "Average Nodes Expanded " << meanNode << " Std Dev: " << sd<< endl;
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <unistd.h>
 
 using namespace std;
 
@@ -97,41 +98,104 @@ bool solve(int grid[N][N], candIter start, candIter end) {
 
 }
 int main(int argc, char** argv) {
-	if (argc < 2) {
+	if (argc < 3) {
 		cout << "Please type in 0, 1, 2, or 3 for difficulty level" << endl;
 		exit(0);
 	}
+	
 	int difficulty = atoi(argv[1]);
+	int numTrials = atoi(argv[2]);
 
-	clock_t start;
-	start = clock();
+	cout << "Difficulty = " << difficulty << " numTrials = " << numTrials << endl;
 
-	if (difficulty == EASY) {
-		int grid[N][N] = {{0, 6, 1, 0, 0, 0, 0, 5, 2},
-				  {8, 0, 0, 0, 0, 0, 0, 0, 1},
-				  {7, 0, 0, 5, 0, 0, 4, 0, 0},
-				  {9, 0, 3, 6, 0, 2, 0, 4, 7},
-				  {0, 0, 6, 7, 0, 1, 5, 0, 0},
-				  {5, 7, 0, 9, 0, 3, 2, 0, 6},
-				  {0, 0, 4, 0, 0, 9, 0, 0, 5},
-				  {1, 0, 0, 0, 0, 0, 0, 0, 8},
-				  {6, 2, 0, 0, 0, 0, 9, 3, 0}};
+	vector<int> nodeCount;
+	vector<double> timeCount;
+	
+	for (int trial = 0; trial < numTrials; ++trial) {
+		nodesExpanded = 0;
+		sleep(1);
+		srand(time(0));
+		clock_t start;
+		start = clock();
+		int grid;
+		if (difficulty == EASY) {
+			int grid[N][N] = {{0, 6, 1, 0, 0, 0, 0, 5, 2},
+					  {8, 0, 0, 0, 0, 0, 0, 0, 1},
+					  {7, 0, 0, 5, 0, 0, 4, 0, 0},
+					  {9, 0, 3, 6, 0, 2, 0, 4, 7},
+					  {0, 0, 6, 7, 0, 1, 5, 0, 0},
+					  {5, 7, 0, 9, 0, 3, 2, 0, 6},
+					  {0, 0, 4, 0, 0, 9, 0, 0, 5},
+					  {1, 0, 0, 0, 0, 0, 0, 0, 8},
+					  {6, 2, 0, 0, 0, 0, 9, 3, 0}};
+			vector<pair<int, int>> unassigned = getUnassigned(grid);
+			if (solve(grid, unassigned.begin(), unassigned.end())) {
+				printGrid(grid);
+			} else {
+				cout << "No Valid Solution" << endl;
+			}
 
-		//printGrid(grid);
-		vector<pair<int, int>> unassigned = getUnassigned(grid);
+					
+		} else if (difficulty == MEDIUM) {
+			int grid[N][N] = {{0, 6, 1, 0, 0, 0, 0, 5, 2},
+					  {8, 0, 0, 0, 0, 0, 0, 0, 1},
+					  {7, 0, 0, 5, 0, 0, 4, 0, 0},
+					  {9, 0, 3, 6, 0, 2, 0, 4, 7},
+					  {0, 0, 6, 7, 0, 1, 5, 0, 0},
+					  {5, 7, 0, 9, 0, 3, 2, 0, 6},
+					  {0, 0, 4, 0, 0, 9, 0, 0, 5},
+					  {1, 0, 0, 0, 0, 0, 0, 0, 8},
+					  {6, 2, 0, 0, 0, 0, 9, 3, 0}};
+			vector<pair<int, int>> unassigned = getUnassigned(grid);
+			if (solve(grid, unassigned.begin(), unassigned.end())) {
+				printGrid(grid);
+			} else {
+				cout << "No Valid Solution" << endl;
+			}
 
-		if (solve(grid, unassigned.begin(), unassigned.end())) {
-			printGrid(grid);
-		} else {
-			cout << "No Valid Solution" << endl;
+
+		} else if (difficulty == EVIL) {
+			int grid[N][N] = {{0, 6, 0, 8, 2, 0, 0, 0, 0},
+					  {0, 0, 2, 0, 0, 0, 8, 0, 1},
+					  {0, 0, 0, 7, 0, 0, 0, 5, 0},
+					  {4, 0, 0, 5, 0, 0, 0, 0, 6},
+					  {0, 9, 0, 6, 0, 7, 0, 3, 0},
+					  {2, 0, 0, 0, 0, 1, 0, 0, 7},
+					  {0, 2, 0, 0, 0, 9, 0, 0, 0},
+					  {8, 0, 4, 0, 0, 0, 7, 0, 0},
+					  {0, 0, 0, 0, 4, 8, 0, 2, 0}};
+			vector<pair<int, int>> unassigned = getUnassigned(grid);
+			if (solve(grid, unassigned.begin(), unassigned.end())) {
+				printGrid(grid);
+			} else {
+				cout << "No Valid Solution" << endl;
+			}
+
 		}
-		
-		/*
-		for (vector<pair<int, int>>::iterator it = unassigned.begin(); it != unassigned.end(); ++it) {
-			cout << ' ' << it->first << ' ' << it->second << endl;
-		}
-		*/
+		cout << "Finished Trial #" << trial << endl;
+		double runtime = (clock() - start) / (double)(CLOCKS_PER_SEC / 1000); 
+		cout << "Time: " << runtime << " ms" << endl;	
+		cout << "Nodes expanded: " << nodesExpanded << endl;
+
+		nodeCount.push_back(nodesExpanded);
+		timeCount.push_back(runtime);		
 	}
-	cout << "Time: " << (clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << endl;	
-	cout << "Nodes expanded: " << nodesExpanded << endl;
+	double meanNode = accumulate(nodeCount.begin(), nodeCount.end(), 0.0) /nodeCount.size();
+	double sd = 0;
+
+	double meanTime = accumulate(timeCount.begin(), timeCount.end(), 0.0) / timeCount.size();
+
+	for (int i = 0; i < numTrials; ++i) {
+		sd += pow(nodeCount[i] - meanNode,2); 
+	}
+
+	double sdtime = 0;
+
+	for (int i = 0; i < numTrials; ++i) {
+		sdtime += pow(timeCount[i] - meanTime,2);		
+	}
+	sdtime = sqrt(sdtime/numTrials);
+	sd = sqrt(sd/numTrials);
+	cout << "********************************************" << endl;
+	cout << "Finished! Average runtime " << meanTime << " ms  Average Nodes Expanded " << meanNode << " Standard Dev: " << sd<< endl;
 }

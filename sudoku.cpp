@@ -211,6 +211,9 @@ bool solveBTFCH(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N]
 		if (numPossible[row][col] < maxConstr) {
 			maxConstr = numPossible[row][col];
 			iterIdx = uaIter;			
+		} else if (numPossible[row][col] == maxConstr) {
+			// Find most constraining variable
+
 		}
 	}
 
@@ -218,18 +221,44 @@ bool solveBTFCH(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N]
 	row = mcv.first;
 	col = mcv.second;
 
-	vector<int> candidates;
+	// Sort by least constraining variable
+	vector<pair<int,int>> candidates;
+	int numCons, startRow, startCol;
+	
+	startRow = (row/BOX)*BOX;
+	startCol = (col/BOX)*BOX;
+
 	for (int i = 0; i < N; ++i) {
+		numCons = 0;
 		if (possibleValues[row][col][i]) {
-			candidates.push_back(i+1);
+			// Count number of constraints for each candidate
+			for (int j = 0; j < N; ++j) {
+				if (j != row && possibleValues[j][col][i]) {
+					numCons += 1;
+				}
+				if (j != col && possibleValues[row][j][i]) {
+					numCons += 1;
+				}
+
+				for (int ii = 0; ii < N; ++ii) {
+					for (int jj = 0; jj < N; ++jj) {
+						if (startRow + ii != row && startCol + jj != col && possibleValues[startRow + ii][startCol + jj][i]) {
+							numCons += 1;
+						}
+					}
+				}
+
+			}
+			candidates.push_back(make_pair(numCons, i+1));
 		}
 	}
+	sort(candidates.begin(), candidates.end());
 	
-	vector<int>::iterator cIter;
+	vector<pair<int,int>>::iterator cIter;
 	
 	// Now perform BTFC 
 	for (cIter = candidates.begin(); cIter != candidates.end(); ++cIter) {
-		num = *cIter;
+		num = cIter->second;
 
 		grid[row][col] = num;
 		nodesExpanded++;
@@ -249,9 +278,6 @@ bool solveBTFCH(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N]
 		}
 
 		// Update Box
-		int startRow = (row/BOX)*BOX;
-		int startCol = (col/BOX)*BOX;
-
 		for (int ii = 0; ii < BOX; ++ii) {
 			for (int jj = 0; jj < BOX; ++jj) {
 				if (possibleValues[startRow + ii][startCol + jj][num-1]) {

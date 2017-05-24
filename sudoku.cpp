@@ -91,8 +91,9 @@ bool solveBT(int grid[N][N], candIter start, candIter end) {
 	}
 	random_shuffle(candidates.begin(), candidates.end());
 
-	for (int i = 0; i < candidates.size(); ++i) {
-		num = candidates[i];
+	vector<int>::iterator cIter;
+	for (cIter = candidates.begin(); cIter != candidates.end(); ++cIter) {
+		num = *cIter;
 		if (checkValid(grid, row, col, num)) {
 			grid[row][col] = num;
 			nodesExpanded++;
@@ -122,8 +123,9 @@ bool solveBTFC(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N][
 	}
 	random_shuffle(candidates.begin(), candidates.end());
 
-	for (int i = 0; i < candidates.size(); ++i) {
-		num = candidates[i];
+	vector<int>::iterator cIter;
+	for (cIter = candidates.begin(); cIter != candidates.end(); ++cIter) {
+		num = *cIter;
 		grid[row][col] = num;
 		nodesExpanded++;
 
@@ -163,7 +165,115 @@ bool solveBTFC(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N][
 		
 		// Add back num to the possible values
 		for (int ii = 0; ii < N; ++ii) {
-			if (checkValid(grid, row, ii, num)) {
+			if (checkValid(grid, row, ii, num)) { 
+				if (!possibleValues[row][ii][num-1]) {
+					numPossible[row][ii] += 1;
+				}
+				possibleValues[row][ii][num-1] = true;			
+			}
+			if (checkValid(grid, ii, col, num)) {
+				if (!possibleValues[ii][col][num-1]) {
+					numPossible[ii][col] += 1;
+				}
+				possibleValues[ii][col][num-1] = true;
+				}
+		}
+
+		for (int ii = 0; ii < BOX; ++ii) {
+			for (int jj = 0; jj < BOX; ++jj) {
+				if (checkValid(grid, startRow + ii, startCol + jj, num)) {
+				        if (!possibleValues[startRow + ii][startCol + jj][num-1]) {
+						numPossible[startRow + ii][startCol + jj] += 1;
+					}
+					possibleValues[startRow + ii][startCol + jj][num-1] = true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool solveBTFCH(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N][N], vector<pair<int, int>> unassigned) {
+
+	if (unassigned.empty()) {
+		return true;
+	}
+	// Find most constrained variable
+
+	int num, row, col;
+	vector<pair<int, int>>::iterator uaIter;
+	vector<pair<int, int>>::iterator iterIdx;
+	pair<int, int> mcv;
+	int maxConstr = 999;
+	for (uaIter = unassigned.begin(); uaIter != unassigned.end(); ++uaIter) {
+		row = uaIter->first;
+		col = uaIter->second;
+		if (numPossible[row][col] < maxConstr) {
+			maxConstr = numPossible[row][col];
+			iterIdx = uaIter;			
+		}
+	}
+
+	mcv = *iterIdx;
+	row = mcv.first;
+	col = mcv.second;
+
+	vector<int> candidates;
+	for (int i = 0; i < N; ++i) {
+		if (possibleValues[row][col][i]) {
+			candidates.push_back(i+1);
+		}
+	}
+	
+	vector<int>::iterator cIter;
+	
+	// Now perform BTFC 
+	for (cIter = candidates.begin(); cIter != candidates.end(); ++cIter) {
+		num = *cIter;
+
+		grid[row][col] = num;
+		nodesExpanded++;
+
+		// Update possible values table					
+		// Update Rows and Cols
+		for (int ii = 0; ii < N; ++ii) {
+			if (possibleValues[row][ii][num-1]) {
+				numPossible[row][ii] -= 1;
+				possibleValues[row][ii][num-1] = false;
+			}
+
+			if (possibleValues[ii][col][num-1]) {
+				numPossible[ii][col] -= 1;	
+				possibleValues[ii][col][num-1] = false;
+			}
+		}
+
+		// Update Box
+		int startRow = (row/BOX)*BOX;
+		int startCol = (col/BOX)*BOX;
+
+		for (int ii = 0; ii < BOX; ++ii) {
+			for (int jj = 0; jj < BOX; ++jj) {
+				if (possibleValues[startRow + ii][startCol + jj][num-1]) {
+					numPossible[startRow + ii][startCol + jj] -= 1;
+				}
+				possibleValues[startRow + ii][startCol + jj][num-1] = false;
+			}
+		}
+		unassigned.erase(iterIdx);
+		if (forwardCheck(grid, numPossible)) {
+			if (solveBTFCH(grid, possibleValues, numPossible, unassigned)) {
+				return true;
+			}
+		}
+		// Failed somewhere
+		grid[row][col] = UNASSIGNED;		
+		unassigned.push_back(mcv);
+		iterIdx = unassigned.end()-1;
+
+		// Add back num to the possible values
+		for (int ii = 0; ii < N; ++ii) {
+			if (checkValid(grid, row, ii, num)) { 
 				if (!possibleValues[row][ii][num-1]) {
 					numPossible[row][ii] += 1;
 				}
@@ -189,7 +299,8 @@ bool solveBTFC(int grid[N][N], bool possibleValues[N][N][N], int numPossible[N][
 		}
 	}
 	return false;
-}
+
+}	
 
 int main(int argc, char** argv) {
 	if (argc < 4) {
@@ -313,7 +424,12 @@ int main(int argc, char** argv) {
 				}
 
 			} else if (method == BTFCH) {
-	
+				if (solveBTFCH(grid, possibleValues, numPossible, unassigned)) {
+					printGrid(grid);
+				} else {
+					cout << "No Valid Solution" << endl;
+				}
+
 			}
 		}
 

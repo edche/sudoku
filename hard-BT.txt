@@ -1,0 +1,1 @@
+Difficulty = 2 numTrials = 50 method = 0

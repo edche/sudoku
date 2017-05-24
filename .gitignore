@@ -33,3 +33,6 @@
 
 # Results files
 *.txt
+
+# Swap Files
+*.swp

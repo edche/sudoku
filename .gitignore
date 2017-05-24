@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Results files
+*.txt
+
+# Swap Files
+*.swp
